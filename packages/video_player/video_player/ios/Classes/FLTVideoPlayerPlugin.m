@@ -46,6 +46,7 @@ int64_t FLTCMTimeToMillis(CMTime time) {
 @property(nonatomic, readonly) bool isPlaying;
 @property(nonatomic) bool isLooping;
 @property(nonatomic, readonly) bool isInitialized;
+@property(nonatomic, assign) CGSize size;
 - (instancetype)initWithURL:(NSURL*)url frameUpdater:(FLTFrameUpdater*)frameUpdater;
 - (void)play;
 - (void)pause;
@@ -141,6 +142,8 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     height = videoTrack.naturalSize.width;
   }
   videoComposition.renderSize = CGSizeMake(width, height);
+  _size.width = width;
+  _size.height = height;
 
   // TODO(@recastrodiaz): should we use videoTrack.nominalFrameRate ?
   // Currently set at a constant 30 FPS
@@ -304,12 +307,15 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 
 - (void)sendInitialized {
   if (_eventSink && !_isInitialized) {
-    CGSize size = [self.player currentItem].presentationSize;
-    CGFloat width = size.width;
-    CGFloat height = size.height;
+    // CGSize size = [self.player currentItem].presentationSize;
+    // CGFloat width = size.width;
+    // CGFloat height = size.height;
 
     // The player has not yet initialized.
-    if (height == CGSizeZero.height && width == CGSizeZero.width) {
+    // if (height == CGSizeZero.height && width == CGSizeZero.width) {
+    //   return;
+    // }
+    if (_size.height == CGSizeZero.height && _size.width == CGSizeZero.width) {
       return;
     }
     // The player may be initialized but still needs to determine the duration.
@@ -321,8 +327,8 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     _eventSink(@{
       @"event" : @"initialized",
       @"duration" : @([self duration]),
-      @"width" : @(width),
-      @"height" : @(height)
+      @"width" : @(_size.width),
+      @"height" : @(_size.height)
     });
   }
 }
